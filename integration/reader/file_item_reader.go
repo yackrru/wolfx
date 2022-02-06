@@ -28,7 +28,19 @@ type FileItemReaderConfig struct {
 	// ChunkSize is the number of rows to be read at once.
 	// If specify 0, FileItemReader will read all lines of file at once.
 	ChunkSize uint
+
+	// RowMapperFunc is the mapping function.
+	// If it is nil, FileItemReader will send data as the type
+	// of MapMapperType to channel.
+	// If not nil, FileItemReader will send data as the type that user defined.
+	RowMapperFunc RowMapper
 }
+
+// MapMapperType is the default sending data type.
+type MapMapperType map[string]string
+
+// RowMapper is the function type to map csv rows to user's own struct.
+type RowMapper func(ctx context.Context, ch chan<- interface{}, chunk []MapMapperType) error
 
 func NewFileItemReader(config *FileItemReaderConfig) *FileItemReader {
 	return &FileItemReader{
@@ -40,7 +52,6 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 	defer close(ch)
 
 	reader := r.config.Reader
-
 	var header []string
 	if r.config.HasHeader {
 		var err error
@@ -51,11 +62,13 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 
 	if r.config.ChunkSize > 0 {
 		for {
-			var chunk []map[string]string
+			var chunk []MapMapperType
 			for i := 0; i < int(r.config.ChunkSize); i++ {
 				record, err := reader.Read()
 				if err == io.EOF {
-					ch <- chunk
+					if err := r.sendChunk(ctx, ch, chunk); err != nil {
+						return err
+					}
 					goto Exit
 				}
 				if err != nil {
@@ -64,7 +77,10 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 				resultSet := createResultSet(header, record)
 				chunk = append(chunk, resultSet)
 			}
-			ch <- chunk
+
+			if err := r.sendChunk(ctx, ch, chunk); err != nil {
+				return err
+			}
 		}
 	Exit:
 	} else {
@@ -72,19 +88,35 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 		if err != nil {
 			return err
 		}
-		var chunk []map[string]string
+		var chunk []MapMapperType
 		for _, record := range records {
 			resultSet := createResultSet(header, record)
 			chunk = append(chunk, resultSet)
 		}
-		ch <- chunk
+		if err := r.sendChunk(ctx, ch, chunk); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func createResultSet(header []string, record []string) map[string]string {
-	resultSet := make(map[string]string)
+func (r *FileItemReader) sendChunk(ctx context.Context, ch chan<- interface{},
+	chunk []MapMapperType) error {
+
+	if r.config.RowMapperFunc == nil {
+		ch <- chunk
+	} else {
+		if err := r.config.RowMapperFunc(ctx, ch, chunk); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func createResultSet(header []string, record []string) MapMapperType {
+	resultSet := make(MapMapperType)
 
 	for idx, val := range record {
 		var key string
