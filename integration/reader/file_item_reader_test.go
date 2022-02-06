@@ -26,7 +26,6 @@ func TestFileItemReaderForHeader(t *testing.T) {
 
 		var wg sync.WaitGroup
 		ch := make(chan interface{})
-		defer close(ch)
 		wg.Add(1)
 		go func(ch chan interface{}) {
 			defer wg.Done()
@@ -53,7 +52,6 @@ func TestFileItemReaderForHeader(t *testing.T) {
 
 		var wg sync.WaitGroup
 		ch := make(chan interface{})
-		defer close(ch)
 		wg.Add(1)
 		go func(ch chan interface{}) {
 			defer wg.Done()
@@ -78,7 +76,7 @@ func assertionFileReader(t *testing.T, chunk []map[string]string, keys ...string
 
 	count := 0
 	for {
-		wanted, err := csvWantReader.Read()
+		want, err := csvWantReader.Read()
 		if err == io.EOF {
 			break
 		}
@@ -86,9 +84,69 @@ func assertionFileReader(t *testing.T, chunk []map[string]string, keys ...string
 			t.Fatal(err)
 		}
 		got := chunk[count]
-		assert.Equal(t, wanted[0], got[keys[0]])
-		assert.Equal(t, wanted[1], got[keys[1]])
-		assert.Equal(t, wanted[2], got[keys[2]])
+		assert.Equal(t, want[0], got[keys[0]])
+		assert.Equal(t, want[1], got[keys[1]])
+		assert.Equal(t, want[2], got[keys[2]])
 		count++
 	}
+}
+
+func TestFileItemReaderForChunkSize(t *testing.T) {
+	t.Run("csv with ChunkSize", func(t *testing.T) {
+		file, err := os.Open("testdata/test_with_header.csv")
+		if err != nil {
+			t.Fatal(err)
+		}
+		csvReader := csv.NewReader(file)
+
+		reader := NewFileItemReader(&FileItemReaderConfig{
+			Reader:    csvReader,
+			HasHeader: true,
+			ChunkSize: 5,
+		})
+
+		var wg sync.WaitGroup
+		ch := make(chan interface{})
+		wg.Add(1)
+		go func(ch chan interface{}) {
+			defer wg.Done()
+			if err := reader.Read(context.TODO(), ch); err != nil {
+				t.Fatal(err)
+			}
+		}(ch)
+
+		fileWant, err := os.Open("testdata/test_without_header.csv")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer fileWant.Close()
+		csvWantReader := csv.NewReader(fileWant)
+
+		header := []string{"id", "name", "created_at"}
+		var wantList [][]map[string]string
+		for {
+			var want []map[string]string
+			for i := 0; i < 5; i++ {
+				wantRow, err := csvWantReader.Read()
+				if err == io.EOF {
+					wantList = append(wantList, want)
+					goto Exit
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				resultSet := createResultSet(header, wantRow)
+				want = append(want, resultSet)
+			}
+			wantList = append(wantList, want)
+		}
+	Exit:
+
+		var assertTimes int
+		for iChunk := range ch {
+			chunk := iChunk.([]map[string]string)
+			assert.ElementsMatch(t, wantList[assertTimes], chunk)
+			assertTimes++
+		}
+	})
 }

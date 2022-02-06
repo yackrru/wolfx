@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"github.com/ttksm/wolfx/middleware"
+	"io"
 	"strconv"
 )
 
@@ -36,6 +37,8 @@ func NewFileItemReader(config *FileItemReaderConfig) *FileItemReader {
 }
 
 func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error {
+	defer close(ch)
+
 	reader := r.config.Reader
 
 	var header []string
@@ -47,17 +50,23 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 	}
 
 	if r.config.ChunkSize > 0 {
-		/*
-			for {
+		for {
+			var chunk []map[string]string
+			for i := 0; i < int(r.config.ChunkSize); i++ {
 				record, err := reader.Read()
 				if err == io.EOF {
-					break
+					ch <- chunk
+					goto Exit
 				}
 				if err != nil {
 					return err
 				}
+				resultSet := createResultSet(header, record)
+				chunk = append(chunk, resultSet)
 			}
-		*/
+			ch <- chunk
+		}
+	Exit:
 	} else {
 		records, err := reader.ReadAll()
 		if err != nil {
@@ -65,20 +74,27 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 		}
 		var chunk []map[string]string
 		for _, record := range records {
-			resultSet := make(map[string]string)
-			for idx, val := range record {
-				var key string
-				if header == nil {
-					key = strconv.Itoa(idx)
-				} else {
-					key = header[idx]
-				}
-				resultSet[key] = val
-			}
+			resultSet := createResultSet(header, record)
 			chunk = append(chunk, resultSet)
 		}
 		ch <- chunk
 	}
 
 	return nil
+}
+
+func createResultSet(header []string, record []string) map[string]string {
+	resultSet := make(map[string]string)
+
+	for idx, val := range record {
+		var key string
+		if header == nil {
+			key = strconv.Itoa(idx)
+		} else {
+			key = header[idx]
+		}
+		resultSet[key] = val
+	}
+
+	return resultSet
 }
