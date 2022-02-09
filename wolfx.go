@@ -47,12 +47,22 @@ func (wx *WolfX) Run(jobName string) error {
 	for _, e := range wx.JobExecutors {
 		if jobName == e.Name() {
 			middleware.Logger.Infof("Target job: %s", jobName)
-			return e.Run()
+			err := e.Run()
+
+			if err == nil {
+				middleware.Logger.Info("Completed WolfX application.")
+			} else {
+				middleware.Logger.Error("Errors have occurred.")
+			}
+			middleware.Logger.Info("Terminate WolfX application...")
+
+			return err
 		}
 	}
 
 	errStr := "Not found job name: " + jobName
 	middleware.Logger.Error(errStr)
+	middleware.Logger.Info("Terminate WolfX application...")
 	return fmt.Errorf(errStr)
 }
 
