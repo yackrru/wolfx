@@ -3,8 +3,10 @@ package writer
 import (
 	"context"
 	"encoding/csv"
+	"fmt"
 	"github.com/ttksm/wolfx/integration/reader"
 	"github.com/ttksm/wolfx/middleware"
+	"reflect"
 	"sort"
 )
 
@@ -65,10 +67,14 @@ func (w *FileItemWriter) Write(ctx context.Context, ch <-chan interface{}) error
 		var items [][]string
 		switch chunk.(type) {
 		case []reader.MapMapperType:
-			items = convertItems(chunk.([]reader.MapMapperType),
+			items = convertItemsMapMapper(chunk.([]reader.MapMapperType),
+				w.config.PropertiesBindPosition)
+		case []reader.CustomMapperType:
+			items = convertItemsCustomMapper(chunk.([]reader.CustomMapperType),
 				w.config.PropertiesBindPosition)
 		default:
-			// TODO
+			v := reflect.ValueOf(chunk)
+			return fmt.Errorf("Not supported such a chunk type: %s", v.Type())
 		}
 		if err := writer.WriteAll(items); err != nil {
 			return err
@@ -96,7 +102,7 @@ func generateHeader(propertiesBindPosition map[string]uint) []string {
 	return header
 }
 
-func convertItems(chunk []reader.MapMapperType,
+func convertItemsMapMapper(chunk []reader.MapMapperType,
 	propertiesBindPosition map[string]uint) [][]string {
 
 	var items [][]string
@@ -121,4 +127,24 @@ func convertItems(chunk []reader.MapMapperType,
 	}
 
 	return items
+}
+
+func convertItemsCustomMapper(chunk []reader.CustomMapperType,
+	propertiesBindPosition map[string]uint) [][]string {
+
+	var mapMapperChunk []reader.MapMapperType
+	for _, itemBuf := range chunk {
+		v := reflect.ValueOf(itemBuf.Properties)
+		t := reflect.TypeOf(itemBuf.Properties)
+
+		resultSet := make(reader.MapMapperType)
+		for i := 0; i < v.NumField(); i++ {
+			key := t.Field(i).Tag.Get("csvprop")
+			val := v.Field(i).String()
+			resultSet[key] = val
+		}
+		mapMapperChunk = append(mapMapperChunk, resultSet)
+	}
+
+	return convertItemsMapMapper(mapMapperChunk, propertiesBindPosition)
 }

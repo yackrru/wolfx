@@ -25,6 +25,11 @@ func (w *TestCSVWriter) WriteAll(records [][]string) error {
 	return nil
 }
 
+type TestChunkType struct {
+	Id   string `csvprop:"id"`
+	Name string `csvprop:"name"`
+}
+
 func TestWrite(t *testing.T) {
 	propertiesBindPosition := make(map[string]uint)
 	propertiesBindPosition["id"] = 0
@@ -84,6 +89,87 @@ func TestWrite(t *testing.T) {
 		go func(ch chan interface{}) {
 			defer wg.Done()
 			if err := writer.Write(context.TODO(), ch); err != nil {
+				t.Error(err)
+			}
+		}(ch)
+
+		chunk := []reader.CustomMapperType{
+			{
+				Properties: TestChunkType{
+					Id:   "0",
+					Name: "name0",
+				},
+			},
+			{
+				Properties: TestChunkType{
+					Id:   "1",
+					Name: "name1",
+				},
+			},
+		}
+		ch <- chunk
+		ch <- chunk
+		ch <- chunk
+		close(ch)
+		wg.Wait()
+
+		assert.Empty(t, csvWriter.header)
+		assert.ElementsMatch(t, [][]string{
+			{"0", "name0"},
+			{"1", "name1"},
+			{"0", "name0"},
+			{"1", "name1"},
+			{"0", "name0"},
+			{"1", "name1"},
+		}, csvWriter.result)
+	})
+
+	t.Run("Not found chunk type", func(t *testing.T) {
+		csvWriter := &TestCSVWriter{}
+		config := &FileItemWriterConfig{
+			Writer:                 csvWriter,
+			PropertiesBindPosition: propertiesBindPosition,
+			NoHeader:               true,
+		}
+		writer := NewFileItemWriter(config)
+
+		var wg sync.WaitGroup
+		ch := make(chan interface{})
+		wg.Add(1)
+		go func(ch chan interface{}) {
+			defer wg.Done()
+			err := writer.Write(context.TODO(), ch)
+			if err == nil {
+				t.Fatal("Want error but got nil")
+			}
+			assert.EqualError(t, err,
+				"Not supported such a chunk type: []map[string]string")
+		}(ch)
+
+		chunk := []map[string]string{
+			{"id": "0", "name": "name0"},
+			{"id": "1", "name": "name1"},
+		}
+		ch <- chunk
+		close(ch)
+		wg.Wait()
+	})
+
+	t.Run("Extractor type without header", func(t *testing.T) {
+		csvWriter := &TestCSVWriter{}
+		config := &FileItemWriterConfig{
+			Writer:                 csvWriter,
+			PropertiesBindPosition: propertiesBindPosition,
+			NoHeader:               true,
+		}
+		writer := NewFileItemWriter(config)
+
+		var wg sync.WaitGroup
+		ch := make(chan interface{})
+		wg.Add(1)
+		go func(ch chan interface{}) {
+			defer wg.Done()
+			if err := writer.Write(context.TODO(), ch); err != nil {
 				t.Fatal(err)
 			}
 		}(ch)
@@ -122,7 +208,7 @@ func TestGenerateHeader(t *testing.T) {
 	}
 }
 
-func TestConvertItems(t *testing.T) {
+func TestConvertItemsMapMapper(t *testing.T) {
 	chunk := []reader.MapMapperType{
 		{
 			"id":         "0",
@@ -145,11 +231,44 @@ func TestConvertItems(t *testing.T) {
 	propertiesBindPosition["id"] = 1
 	propertiesBindPosition["name"] = 2
 
-	items := convertItems(chunk, propertiesBindPosition)
+	items := convertItemsMapMapper(chunk, propertiesBindPosition)
 	for idx, item := range items {
 		target := chunk[idx]
 		assert.Equal(t, target["created_at"], item[0])
 		assert.Equal(t, target["id"], item[1])
 		assert.Equal(t, target["name"], item[2])
+	}
+}
+
+func TestConvertItemsCustomMapper(t *testing.T) {
+	chunk := []reader.CustomMapperType{
+		{
+			Properties: TestChunkType{
+				Id:   "0",
+				Name: "name0",
+			},
+		},
+		{
+			Properties: TestChunkType{
+				Id:   "1",
+				Name: "name1",
+			},
+		},
+		{
+			Properties: TestChunkType{
+				Id:   "2",
+				Name: "name2",
+			},
+		},
+	}
+	propertiesBindPosition := make(map[string]uint)
+	propertiesBindPosition["id"] = 2
+	propertiesBindPosition["name"] = 1
+
+	items := convertItemsCustomMapper(chunk, propertiesBindPosition)
+	for idx, item := range items {
+		target := chunk[idx]
+		assert.Equal(t, target.Properties.(TestChunkType).Id, item[1])
+		assert.Equal(t, target.Properties.(TestChunkType).Name, item[0])
 	}
 }
