@@ -37,6 +37,8 @@ type FileItemWriterConfig struct {
 type CSVWriter interface {
 	Write(record []string) error
 	WriteAll(records [][]string) error
+	Flush()
+	Error() error
 }
 
 func NewFileItemWriter(config *FileItemWriterConfig) *FileItemWriter {
@@ -77,6 +79,10 @@ func (w *FileItemWriter) Write(ctx context.Context, ch <-chan interface{}) error
 			return fmt.Errorf("Not supported such a chunk type: %s", v.Type())
 		}
 		if err := writer.WriteAll(items); err != nil {
+			return err
+		}
+		writer.Flush()
+		if err := writer.Error(); err != nil {
 			return err
 		}
 	}

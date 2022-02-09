@@ -25,6 +25,12 @@ func (w *TestCSVWriter) WriteAll(records [][]string) error {
 	return nil
 }
 
+func (w *TestCSVWriter) Flush() {}
+
+func (w *TestCSVWriter) Error() error {
+	return nil
+}
+
 type TestChunkType struct {
 	Id   string `csvprop:"id"`
 	Name string `csvprop:"name"`
