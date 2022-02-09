@@ -3,7 +3,7 @@ package writer
 import (
 	"context"
 	"github.com/stretchr/testify/assert"
-	"github.com/ttksm/wolfx/integration/reader"
+	"github.com/yackrru/wolfx/integration/reader"
 	"sync"
 	"testing"
 )

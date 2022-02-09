@@ -3,7 +3,7 @@ package reader
 import (
 	"context"
 	"encoding/csv"
-	"github.com/ttksm/wolfx/middleware"
+	"github.com/yackrru/wolfx/middleware"
 	"io"
 	"strconv"
 )

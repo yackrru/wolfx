@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
-	"github.com/ttksm/wolfx/integration/reader"
-	"github.com/ttksm/wolfx/middleware"
+	"github.com/yackrru/wolfx/integration/reader"
+	"github.com/yackrru/wolfx/middleware"
 	"reflect"
 	"sort"
 )

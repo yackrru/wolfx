@@ -3,7 +3,7 @@ package wolfx
 import (
 	"context"
 	"fmt"
-	"github.com/ttksm/wolfx/middleware"
+	"github.com/yackrru/wolfx/middleware"
 	"golang.org/x/sync/errgroup"
 	"os"
 	"reflect"

@@ -1,4 +1,4 @@
-module github.com/ttksm/wolfx
+module github.com/yackrru/wolfx
 
 go 1.17
 

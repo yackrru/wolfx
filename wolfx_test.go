@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"github.com/ttksm/wolfx"
-	"github.com/ttksm/wolfx/middleware"
+	"github.com/yackrru/wolfx"
+	"github.com/yackrru/wolfx/middleware"
 	"testing"
 	"time"
 )
