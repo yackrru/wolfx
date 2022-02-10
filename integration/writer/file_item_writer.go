@@ -2,7 +2,6 @@ package writer
 
 import (
 	"context"
-	"encoding/csv"
 	"fmt"
 	"github.com/yackrru/wolfx/integration/reader"
 	"github.com/yackrru/wolfx/middleware"
@@ -44,14 +43,6 @@ type CSVWriter interface {
 func NewFileItemWriter(config *FileItemWriterConfig) *FileItemWriter {
 	return &FileItemWriter{
 		config: config,
-	}
-}
-
-func NewFileItemWriterConfig(writer *csv.Writer,
-	propertiesBindPosition map[string]uint) *FileItemWriterConfig {
-	return &FileItemWriterConfig{
-		Writer:                 writer,
-		PropertiesBindPosition: propertiesBindPosition,
 	}
 }
 
