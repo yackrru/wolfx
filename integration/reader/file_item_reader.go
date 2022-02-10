@@ -2,7 +2,6 @@ package reader
 
 import (
 	"context"
-	"encoding/csv"
 	"github.com/yackrru/wolfx/middleware"
 	"io"
 	"strconv"
@@ -19,7 +18,7 @@ type FileItemReader struct {
 
 // FileItemReaderConfig is the configuration of FileItemReader.
 type FileItemReaderConfig struct {
-	Reader *csv.Reader
+	Reader CSVReader
 
 	// If HasHeader is true, FileItemReader will ignore the 1st line of file.
 	// If false, FileItemReader will read from 1st line of file.
@@ -34,6 +33,13 @@ type FileItemReaderConfig struct {
 	// of MapMapperType to channel.
 	// If not nil, FileItemReader will send data as the type that user defined.
 	RowMapperFunc RowMapper
+}
+
+// CSVReader is the interface that wraps methods of Read and ReadAll.
+// Read reads from a file line by line and ReadAll is the opposite.
+type CSVReader interface {
+	Read() (record []string, err error)
+	ReadAll() (records [][]string, err error)
 }
 
 // MapMapperType is the default sending data type.
