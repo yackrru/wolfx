@@ -32,7 +32,7 @@ type ReaderConfig struct {
 	// If it is nil, Reader will send data as the type
 	// of MapMapperType to channel.
 	// If not nil, Reader will send data as the type that user defined.
-	RowMapperFunc RowMapper
+	RowMapperFunc middleware.RowMapper
 }
 
 // CSVReader is the interface that wraps methods of Read and ReadAll.
@@ -41,10 +41,6 @@ type CSVReader interface {
 	Read() (record []string, err error)
 	ReadAll() (records [][]string, err error)
 }
-
-// RowMapper is the function type to map csv rows to user's own struct.
-type RowMapper func(ctx context.Context, ch chan<- interface{},
-	chunk []middleware.MapMapperType) error
 
 func NewReader(conf *ReaderConfig) *Reader {
 	return &Reader{
