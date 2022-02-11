@@ -1,4 +1,4 @@
-package reader
+package file
 
 import (
 	"context"
@@ -7,31 +7,31 @@ import (
 	"strconv"
 )
 
-var _ middleware.Reader = new(FileItemReader)
+var _ middleware.Reader = new(Reader)
 
-// FileItemReader is an implementation of middleware.Reader.
+// Reader is an implementation of middleware.Reader.
 // It contains the standard package encoding/csv
 // and is used to read csv format files.
-type FileItemReader struct {
-	config *FileItemReaderConfig
+type Reader struct {
+	conf *ReaderConfig
 }
 
-// FileItemReaderConfig is the configuration of FileItemReader.
-type FileItemReaderConfig struct {
+// ReaderConfig is the configuration of Reader.
+type ReaderConfig struct {
 	Reader CSVReader
 
-	// If HasHeader is true, FileItemReader will ignore the 1st line of file.
-	// If false, FileItemReader will read from 1st line of file.
+	// If HasHeader is true, Reader will ignore the 1st line of file.
+	// If false, Reader will read from 1st line of file.
 	HasHeader bool
 
 	// ChunkSize is the number of rows to be read at once.
-	// If specify 0, FileItemReader will read all lines of file at once.
+	// If specify 0, Reader will read all lines of file at once.
 	ChunkSize uint
 
 	// RowMapperFunc is the mapping function.
-	// If it is nil, FileItemReader will send data as the type
+	// If it is nil, Reader will send data as the type
 	// of MapMapperType to channel.
-	// If not nil, FileItemReader will send data as the type that user defined.
+	// If not nil, Reader will send data as the type that user defined.
 	RowMapperFunc RowMapper
 }
 
@@ -46,28 +46,28 @@ type CSVReader interface {
 type RowMapper func(ctx context.Context, ch chan<- interface{},
 	chunk []middleware.MapMapperType) error
 
-func NewFileItemReader(config *FileItemReaderConfig) *FileItemReader {
-	return &FileItemReader{
-		config: config,
+func NewReader(conf *ReaderConfig) *Reader {
+	return &Reader{
+		conf: conf,
 	}
 }
 
-func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error {
+func (r *Reader) Read(ctx context.Context, ch chan<- interface{}) error {
 	defer close(ch)
 
-	reader := r.config.Reader
+	reader := r.conf.Reader
 	var header []string
-	if r.config.HasHeader {
+	if r.conf.HasHeader {
 		var err error
 		if header, err = reader.Read(); err != nil {
 			return err
 		}
 	}
 
-	if r.config.ChunkSize > 0 {
+	if r.conf.ChunkSize > 0 {
 		for {
 			var chunk []middleware.MapMapperType
-			for i := 0; i < int(r.config.ChunkSize); i++ {
+			for i := 0; i < int(r.conf.ChunkSize); i++ {
 				record, err := reader.Read()
 				if err == io.EOF {
 					if err := r.sendChunk(ctx, ch, chunk); err != nil {
@@ -105,13 +105,13 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 	return nil
 }
 
-func (r *FileItemReader) sendChunk(ctx context.Context, ch chan<- interface{},
+func (r *Reader) sendChunk(ctx context.Context, ch chan<- interface{},
 	chunk []middleware.MapMapperType) error {
 
-	if r.config.RowMapperFunc == nil {
+	if r.conf.RowMapperFunc == nil {
 		ch <- chunk
 	} else {
-		if err := r.config.RowMapperFunc(ctx, ch, chunk); err != nil {
+		if err := r.conf.RowMapperFunc(ctx, ch, chunk); err != nil {
 			return err
 		}
 	}

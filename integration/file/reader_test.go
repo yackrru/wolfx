@@ -1,4 +1,4 @@
-package reader
+package file
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestFileItemReaderForHeader(t *testing.T) {
+func TestReaderForHeader(t *testing.T) {
 	t.Run("csv with header", func(t *testing.T) {
 		file, err := os.Open("testdata/test_with_header.csv")
 		if err != nil {
@@ -20,7 +20,7 @@ func TestFileItemReaderForHeader(t *testing.T) {
 		defer file.Close()
 		csvReader := csv.NewReader(file)
 
-		reader := NewFileItemReader(&FileItemReaderConfig{
+		reader := NewReader(&ReaderConfig{
 			Reader:    csvReader,
 			HasHeader: true,
 		})
@@ -47,7 +47,7 @@ func TestFileItemReaderForHeader(t *testing.T) {
 		}
 		csvReader := csv.NewReader(file)
 
-		reader := NewFileItemReader(&FileItemReaderConfig{
+		reader := NewReader(&ReaderConfig{
 			Reader: csvReader,
 		})
 
@@ -92,14 +92,14 @@ func assertionFileReader(t *testing.T, chunk []middleware.MapMapperType, keys ..
 	}
 }
 
-func TestFileItemReaderForChunkSize(t *testing.T) {
+func TestReaderForChunkSize(t *testing.T) {
 	file, err := os.Open("testdata/test_with_header.csv")
 	if err != nil {
 		t.Fatal(err)
 	}
 	csvReader := csv.NewReader(file)
 
-	reader := NewFileItemReader(&FileItemReaderConfig{
+	reader := NewReader(&ReaderConfig{
 		Reader:    csvReader,
 		HasHeader: true,
 		ChunkSize: 5,
@@ -150,7 +150,7 @@ Exit:
 	}
 }
 
-func TestFileItemReaderWithMapperFunc(t *testing.T) {
+func TestReaderWithMapperFunc(t *testing.T) {
 	t.Run("Without ChunkSize", func(t *testing.T) {
 		file, err := os.Open("testdata/test_with_header.csv")
 		if err != nil {
@@ -159,7 +159,7 @@ func TestFileItemReaderWithMapperFunc(t *testing.T) {
 		defer file.Close()
 		csvReader := csv.NewReader(file)
 
-		reader := NewFileItemReader(&FileItemReaderConfig{
+		reader := NewReader(&ReaderConfig{
 			Reader:        csvReader,
 			HasHeader:     true,
 			RowMapperFunc: CSVMapper,
@@ -208,7 +208,7 @@ func TestFileItemReaderWithMapperFunc(t *testing.T) {
 		}
 		csvReader := csv.NewReader(file)
 
-		reader := NewFileItemReader(&FileItemReaderConfig{
+		reader := NewReader(&ReaderConfig{
 			Reader:        csvReader,
 			HasHeader:     true,
 			ChunkSize:     5,

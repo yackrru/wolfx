@@ -1,4 +1,4 @@
-package writer
+package file
 
 import (
 	"context"
@@ -8,24 +8,24 @@ import (
 	"sort"
 )
 
-var _ middleware.Writer = new(FileItemWriter)
+var _ middleware.Writer = new(Writer)
 
-// FileItemWriter is an implementation of middleware.Writer.
+// Writer is an implementation of middleware.Writer.
 // It contains the standard package encoding/csv
 // and is used to write csv format files.
-type FileItemWriter struct {
-	config *FileItemWriterConfig
+type Writer struct {
+	conf *WriterConfig
 }
 
-// FileItemWriterConfig is the configuration of FileItemWriter.
-type FileItemWriterConfig struct {
+// WriterConfig is the configuration of Writer.
+type WriterConfig struct {
 	Writer CSVWriter
 
-	// PropertiesBindPosition is the position mapping of header's columns.
+	// PropsBindPosition is the position mapping of header's columns.
 	// Key of map is property (column) name and value is position with starting 0.
-	PropertiesBindPosition map[string]uint
+	PropsBindPosition map[string]uint
 
-	// If NoHeader is true, FileItemWriter firstly outputs header string to csv.
+	// If NoHeader is true, Writer firstly outputs header string to csv.
 	NoHeader bool
 }
 
@@ -39,17 +39,17 @@ type CSVWriter interface {
 	Error() error
 }
 
-func NewFileItemWriter(config *FileItemWriterConfig) *FileItemWriter {
-	return &FileItemWriter{
-		config: config,
+func NewWriter(conf *WriterConfig) *Writer {
+	return &Writer{
+		conf: conf,
 	}
 }
 
-func (w *FileItemWriter) Write(ctx context.Context, ch <-chan interface{}) error {
-	writer := w.config.Writer
+func (w *Writer) Write(ctx context.Context, ch <-chan interface{}) error {
+	writer := w.conf.Writer
 
-	if !w.config.NoHeader {
-		header := generateHeader(w.config.PropertiesBindPosition)
+	if !w.conf.NoHeader {
+		header := generateHeader(w.conf.PropsBindPosition)
 		if err := writer.Write(header); err != nil {
 			return err
 		}
@@ -60,10 +60,10 @@ func (w *FileItemWriter) Write(ctx context.Context, ch <-chan interface{}) error
 		switch chunk.(type) {
 		case []middleware.MapMapperType:
 			items = convertItemsMapMapper(chunk.([]middleware.MapMapperType),
-				w.config.PropertiesBindPosition)
+				w.conf.PropsBindPosition)
 		case []middleware.CustomMapperType:
 			items = convertItemsCustomMapper(chunk.([]middleware.CustomMapperType),
-				w.config.PropertiesBindPosition)
+				w.conf.PropsBindPosition)
 		default:
 			v := reflect.ValueOf(chunk)
 			return fmt.Errorf("Not supported such a chunk type: %s", v.Type())
@@ -80,11 +80,11 @@ func (w *FileItemWriter) Write(ctx context.Context, ch <-chan interface{}) error
 	return nil
 }
 
-func generateHeader(propertiesBindPosition map[string]uint) []string {
-	reverted := make(map[int]string, len(propertiesBindPosition))
+func generateHeader(propsBindPosition map[string]uint) []string {
+	reverted := make(map[int]string, len(propsBindPosition))
 
 	var idxList []int
-	for k, v := range propertiesBindPosition {
+	for k, v := range propsBindPosition {
 		idxList = append(idxList, int(v))
 		reverted[int(v)] = k
 	}
@@ -99,13 +99,13 @@ func generateHeader(propertiesBindPosition map[string]uint) []string {
 }
 
 func convertItemsMapMapper(chunk []middleware.MapMapperType,
-	propertiesBindPosition map[string]uint) [][]string {
+	propsBindPosition map[string]uint) [][]string {
 
 	var items [][]string
 	for _, itemBuf := range chunk {
 		itemMap := make(map[int]string)
 		for k, v := range itemBuf {
-			position := int(propertiesBindPosition[k])
+			position := int(propsBindPosition[k])
 			itemMap[position] = v
 		}
 
@@ -126,7 +126,7 @@ func convertItemsMapMapper(chunk []middleware.MapMapperType,
 }
 
 func convertItemsCustomMapper(chunk []middleware.CustomMapperType,
-	propertiesBindPosition map[string]uint) [][]string {
+	propsBindPosition map[string]uint) [][]string {
 
 	var mapMapperChunk []middleware.MapMapperType
 	for _, itemBuf := range chunk {
@@ -142,5 +142,5 @@ func convertItemsCustomMapper(chunk []middleware.CustomMapperType,
 		mapMapperChunk = append(mapMapperChunk, resultSet)
 	}
 
-	return convertItemsMapMapper(mapMapperChunk, propertiesBindPosition)
+	return convertItemsMapMapper(mapMapperChunk, propsBindPosition)
 }

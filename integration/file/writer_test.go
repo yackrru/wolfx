@@ -1,4 +1,4 @@
-package writer
+package file
 
 import (
 	"context"
@@ -37,17 +37,17 @@ type TestChunkType struct {
 }
 
 func TestWrite(t *testing.T) {
-	propertiesBindPosition := make(map[string]uint)
-	propertiesBindPosition["id"] = 0
-	propertiesBindPosition["name"] = 1
+	propsBindPosition := make(map[string]uint)
+	propsBindPosition["id"] = 0
+	propsBindPosition["name"] = 1
 
 	t.Run("MapMapperType with header", func(t *testing.T) {
 		csvWriter := &TestCSVWriter{}
-		config := &FileItemWriterConfig{
-			Writer:                 csvWriter,
-			PropertiesBindPosition: propertiesBindPosition,
+		config := &WriterConfig{
+			Writer:            csvWriter,
+			PropsBindPosition: propsBindPosition,
 		}
-		writer := NewFileItemWriter(config)
+		writer := NewWriter(config)
 
 		var wg sync.WaitGroup
 		ch := make(chan interface{})
@@ -82,12 +82,12 @@ func TestWrite(t *testing.T) {
 
 	t.Run("MapMapperType without header", func(t *testing.T) {
 		csvWriter := &TestCSVWriter{}
-		config := &FileItemWriterConfig{
-			Writer:                 csvWriter,
-			PropertiesBindPosition: propertiesBindPosition,
-			NoHeader:               true,
+		config := &WriterConfig{
+			Writer:            csvWriter,
+			PropsBindPosition: propsBindPosition,
+			NoHeader:          true,
 		}
-		writer := NewFileItemWriter(config)
+		writer := NewWriter(config)
 
 		var wg sync.WaitGroup
 		ch := make(chan interface{})
@@ -132,12 +132,12 @@ func TestWrite(t *testing.T) {
 
 	t.Run("Not found chunk type", func(t *testing.T) {
 		csvWriter := &TestCSVWriter{}
-		config := &FileItemWriterConfig{
-			Writer:                 csvWriter,
-			PropertiesBindPosition: propertiesBindPosition,
-			NoHeader:               true,
+		config := &WriterConfig{
+			Writer:            csvWriter,
+			PropsBindPosition: propsBindPosition,
+			NoHeader:          true,
 		}
-		writer := NewFileItemWriter(config)
+		writer := NewWriter(config)
 
 		var wg sync.WaitGroup
 		ch := make(chan interface{})
@@ -163,12 +163,12 @@ func TestWrite(t *testing.T) {
 
 	t.Run("Extractor type without header", func(t *testing.T) {
 		csvWriter := &TestCSVWriter{}
-		config := &FileItemWriterConfig{
-			Writer:                 csvWriter,
-			PropertiesBindPosition: propertiesBindPosition,
-			NoHeader:               true,
+		config := &WriterConfig{
+			Writer:            csvWriter,
+			PropsBindPosition: propsBindPosition,
+			NoHeader:          true,
 		}
-		writer := NewFileItemWriter(config)
+		writer := NewWriter(config)
 
 		var wg sync.WaitGroup
 		ch := make(chan interface{})
@@ -203,14 +203,14 @@ func TestWrite(t *testing.T) {
 }
 
 func TestGenerateHeader(t *testing.T) {
-	propertiesBindPosition := make(map[string]uint)
-	propertiesBindPosition["name"] = 1
-	propertiesBindPosition["created_at"] = 2
-	propertiesBindPosition["id"] = 0
+	propsBindPosition := make(map[string]uint)
+	propsBindPosition["name"] = 1
+	propsBindPosition["created_at"] = 2
+	propsBindPosition["id"] = 0
 
-	header := generateHeader(propertiesBindPosition)
+	header := generateHeader(propsBindPosition)
 	for idx, property := range header {
-		assert.Equal(t, int(propertiesBindPosition[property]), idx)
+		assert.Equal(t, int(propsBindPosition[property]), idx)
 	}
 }
 
@@ -232,12 +232,12 @@ func TestConvertItemsMapMapper(t *testing.T) {
 			"created_at": "2022-01-01 00:00:00",
 		},
 	}
-	propertiesBindPosition := make(map[string]uint)
-	propertiesBindPosition["created_at"] = 0
-	propertiesBindPosition["id"] = 1
-	propertiesBindPosition["name"] = 2
+	propsBindPosition := make(map[string]uint)
+	propsBindPosition["created_at"] = 0
+	propsBindPosition["id"] = 1
+	propsBindPosition["name"] = 2
 
-	items := convertItemsMapMapper(chunk, propertiesBindPosition)
+	items := convertItemsMapMapper(chunk, propsBindPosition)
 	for idx, item := range items {
 		target := chunk[idx]
 		assert.Equal(t, target["created_at"], item[0])
@@ -267,11 +267,11 @@ func TestConvertItemsCustomMapper(t *testing.T) {
 			},
 		},
 	}
-	propertiesBindPosition := make(map[string]uint)
-	propertiesBindPosition["id"] = 2
-	propertiesBindPosition["name"] = 1
+	propsBindPosition := make(map[string]uint)
+	propsBindPosition["id"] = 2
+	propsBindPosition["name"] = 1
 
-	items := convertItemsCustomMapper(chunk, propertiesBindPosition)
+	items := convertItemsCustomMapper(chunk, propsBindPosition)
 	for idx, item := range items {
 		target := chunk[idx]
 		assert.Equal(t, target.Props.(TestChunkType).Id, item[1])
