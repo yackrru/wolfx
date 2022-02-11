@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"github.com/stretchr/testify/assert"
+	"github.com/yackrru/wolfx/middleware"
 	"io"
 	"os"
 	"sync"
@@ -34,7 +35,7 @@ func TestFileItemReaderForHeader(t *testing.T) {
 			}
 		}(ch)
 		iChunk := <-ch
-		chunk := iChunk.([]MapMapperType)
+		chunk := iChunk.([]middleware.MapMapperType)
 
 		assertionFileReader(t, chunk, "id", "name", "created_at")
 	})
@@ -60,13 +61,13 @@ func TestFileItemReaderForHeader(t *testing.T) {
 			}
 		}(ch)
 		iChunk := <-ch
-		chunk := iChunk.([]MapMapperType)
+		chunk := iChunk.([]middleware.MapMapperType)
 
 		assertionFileReader(t, chunk, "0", "1", "2")
 	})
 }
 
-func assertionFileReader(t *testing.T, chunk []MapMapperType, keys ...string) {
+func assertionFileReader(t *testing.T, chunk []middleware.MapMapperType, keys ...string) {
 	fileWant, err := os.Open("testdata/test_without_header.csv")
 	if err != nil {
 		t.Fatal(err)
@@ -122,9 +123,9 @@ func TestFileItemReaderForChunkSize(t *testing.T) {
 	csvWantReader := csv.NewReader(fileWant)
 
 	header := []string{"id", "name", "created_at"}
-	var wantList [][]MapMapperType
+	var wantList [][]middleware.MapMapperType
 	for {
-		var want []MapMapperType
+		var want []middleware.MapMapperType
 		for i := 0; i < 5; i++ {
 			wantRow, err := csvWantReader.Read()
 			if err == io.EOF {
@@ -143,7 +144,7 @@ Exit:
 
 	var assertTimes int
 	for iChunk := range ch {
-		chunk := iChunk.([]MapMapperType)
+		chunk := iChunk.([]middleware.MapMapperType)
 		assert.ElementsMatch(t, wantList[assertTimes], chunk)
 		assertTimes++
 	}
@@ -269,7 +270,8 @@ type TestCSVMapping struct {
 	CreatedAt string
 }
 
-func CSVMapper(ctx context.Context, ch chan<- interface{}, chunk []MapMapperType) error {
+func CSVMapper(ctx context.Context, ch chan<- interface{},
+	chunk []middleware.MapMapperType) error {
 	var dto []TestCSVMapping
 
 	for _, row := range chunk {

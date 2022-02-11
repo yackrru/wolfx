@@ -3,7 +3,6 @@ package writer
 import (
 	"context"
 	"fmt"
-	"github.com/yackrru/wolfx/integration/reader"
 	"github.com/yackrru/wolfx/middleware"
 	"reflect"
 	"sort"
@@ -59,11 +58,11 @@ func (w *FileItemWriter) Write(ctx context.Context, ch <-chan interface{}) error
 	for chunk := range ch {
 		var items [][]string
 		switch chunk.(type) {
-		case []reader.MapMapperType:
-			items = convertItemsMapMapper(chunk.([]reader.MapMapperType),
+		case []middleware.MapMapperType:
+			items = convertItemsMapMapper(chunk.([]middleware.MapMapperType),
 				w.config.PropertiesBindPosition)
-		case []reader.CustomMapperType:
-			items = convertItemsCustomMapper(chunk.([]reader.CustomMapperType),
+		case []middleware.CustomMapperType:
+			items = convertItemsCustomMapper(chunk.([]middleware.CustomMapperType),
 				w.config.PropertiesBindPosition)
 		default:
 			v := reflect.ValueOf(chunk)
@@ -99,7 +98,7 @@ func generateHeader(propertiesBindPosition map[string]uint) []string {
 	return header
 }
 
-func convertItemsMapMapper(chunk []reader.MapMapperType,
+func convertItemsMapMapper(chunk []middleware.MapMapperType,
 	propertiesBindPosition map[string]uint) [][]string {
 
 	var items [][]string
@@ -126,17 +125,17 @@ func convertItemsMapMapper(chunk []reader.MapMapperType,
 	return items
 }
 
-func convertItemsCustomMapper(chunk []reader.CustomMapperType,
+func convertItemsCustomMapper(chunk []middleware.CustomMapperType,
 	propertiesBindPosition map[string]uint) [][]string {
 
-	var mapMapperChunk []reader.MapMapperType
+	var mapMapperChunk []middleware.MapMapperType
 	for _, itemBuf := range chunk {
-		v := reflect.ValueOf(itemBuf.Properties)
-		t := reflect.TypeOf(itemBuf.Properties)
+		v := reflect.ValueOf(itemBuf.Props)
+		t := reflect.TypeOf(itemBuf.Props)
 
-		resultSet := make(reader.MapMapperType)
+		resultSet := make(middleware.MapMapperType)
 		for i := 0; i < v.NumField(); i++ {
-			key := t.Field(i).Tag.Get("csvprop")
+			key := t.Field(i).Tag.Get(middleware.CustomMapperTag)
 			val := v.Field(i).String()
 			resultSet[key] = val
 		}

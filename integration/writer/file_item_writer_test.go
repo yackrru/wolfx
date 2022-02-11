@@ -3,7 +3,7 @@ package writer
 import (
 	"context"
 	"github.com/stretchr/testify/assert"
-	"github.com/yackrru/wolfx/integration/reader"
+	"github.com/yackrru/wolfx/middleware"
 	"sync"
 	"testing"
 )
@@ -32,8 +32,8 @@ func (w *TestCSVWriter) Error() error {
 }
 
 type TestChunkType struct {
-	Id   string `csvprop:"id"`
-	Name string `csvprop:"name"`
+	Id   string `prop:"id"`
+	Name string `prop:"name"`
 }
 
 func TestWrite(t *testing.T) {
@@ -59,7 +59,7 @@ func TestWrite(t *testing.T) {
 			}
 		}(ch)
 
-		chunk := []reader.MapMapperType{
+		chunk := []middleware.MapMapperType{
 			{"id": "0", "name": "name0"},
 			{"id": "1", "name": "name1"},
 		}
@@ -99,15 +99,15 @@ func TestWrite(t *testing.T) {
 			}
 		}(ch)
 
-		chunk := []reader.CustomMapperType{
+		chunk := []middleware.CustomMapperType{
 			{
-				Properties: TestChunkType{
+				Props: TestChunkType{
 					Id:   "0",
 					Name: "name0",
 				},
 			},
 			{
-				Properties: TestChunkType{
+				Props: TestChunkType{
 					Id:   "1",
 					Name: "name1",
 				},
@@ -180,7 +180,7 @@ func TestWrite(t *testing.T) {
 			}
 		}(ch)
 
-		chunk := []reader.MapMapperType{
+		chunk := []middleware.MapMapperType{
 			{"id": "0", "name": "name0"},
 			{"id": "1", "name": "name1"},
 		}
@@ -215,7 +215,7 @@ func TestGenerateHeader(t *testing.T) {
 }
 
 func TestConvertItemsMapMapper(t *testing.T) {
-	chunk := []reader.MapMapperType{
+	chunk := []middleware.MapMapperType{
 		{
 			"id":         "0",
 			"name":       "name0",
@@ -247,21 +247,21 @@ func TestConvertItemsMapMapper(t *testing.T) {
 }
 
 func TestConvertItemsCustomMapper(t *testing.T) {
-	chunk := []reader.CustomMapperType{
+	chunk := []middleware.CustomMapperType{
 		{
-			Properties: TestChunkType{
+			Props: TestChunkType{
 				Id:   "0",
 				Name: "name0",
 			},
 		},
 		{
-			Properties: TestChunkType{
+			Props: TestChunkType{
 				Id:   "1",
 				Name: "name1",
 			},
 		},
 		{
-			Properties: TestChunkType{
+			Props: TestChunkType{
 				Id:   "2",
 				Name: "name2",
 			},
@@ -274,7 +274,7 @@ func TestConvertItemsCustomMapper(t *testing.T) {
 	items := convertItemsCustomMapper(chunk, propertiesBindPosition)
 	for idx, item := range items {
 		target := chunk[idx]
-		assert.Equal(t, target.Properties.(TestChunkType).Id, item[1])
-		assert.Equal(t, target.Properties.(TestChunkType).Name, item[0])
+		assert.Equal(t, target.Props.(TestChunkType).Id, item[1])
+		assert.Equal(t, target.Props.(TestChunkType).Name, item[0])
 	}
 }

@@ -42,22 +42,9 @@ type CSVReader interface {
 	ReadAll() (records [][]string, err error)
 }
 
-// MapMapperType is the default sending data type.
-type MapMapperType map[string]string
-
-// CustomMapperType is the custom sending data type.
-type CustomMapperType struct {
-
-	// Properties expects struct type.
-	// Each element of the Properties struct
-	// is given a csvprop tag.
-	// For the csvprop value, enter the corresponding header name.
-	// Example: `csvprop:"id"`
-	Properties interface{}
-}
-
 // RowMapper is the function type to map csv rows to user's own struct.
-type RowMapper func(ctx context.Context, ch chan<- interface{}, chunk []MapMapperType) error
+type RowMapper func(ctx context.Context, ch chan<- interface{},
+	chunk []middleware.MapMapperType) error
 
 func NewFileItemReader(config *FileItemReaderConfig) *FileItemReader {
 	return &FileItemReader{
@@ -79,7 +66,7 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 
 	if r.config.ChunkSize > 0 {
 		for {
-			var chunk []MapMapperType
+			var chunk []middleware.MapMapperType
 			for i := 0; i < int(r.config.ChunkSize); i++ {
 				record, err := reader.Read()
 				if err == io.EOF {
@@ -105,7 +92,7 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 		if err != nil {
 			return err
 		}
-		var chunk []MapMapperType
+		var chunk []middleware.MapMapperType
 		for _, record := range records {
 			resultSet := createResultSet(header, record)
 			chunk = append(chunk, resultSet)
@@ -119,7 +106,7 @@ func (r *FileItemReader) Read(ctx context.Context, ch chan<- interface{}) error 
 }
 
 func (r *FileItemReader) sendChunk(ctx context.Context, ch chan<- interface{},
-	chunk []MapMapperType) error {
+	chunk []middleware.MapMapperType) error {
 
 	if r.config.RowMapperFunc == nil {
 		ch <- chunk
@@ -132,8 +119,8 @@ func (r *FileItemReader) sendChunk(ctx context.Context, ch chan<- interface{},
 	return nil
 }
 
-func createResultSet(header []string, record []string) MapMapperType {
-	resultSet := make(MapMapperType)
+func createResultSet(header []string, record []string) middleware.MapMapperType {
+	resultSet := make(middleware.MapMapperType)
 
 	for idx, val := range record {
 		var key string
