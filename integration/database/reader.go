@@ -67,12 +67,16 @@ func (r *Reader) Read(ctx context.Context, ch chan<- interface{}) error {
 			resultSet := rawBytesToMapMapper(cols, vals)
 			chunk = append(chunk, resultSet)
 			if cursor%int(r.conf.ChunkSize) == 0 {
-				ch <- chunk
+				if err := r.sendChunk(ctx, ch, chunk); err != nil {
+					return err
+				}
 				chunk = []middleware.MapMapperType{}
 			}
 		}
 		if len(chunk) != 0 {
-			ch <- chunk
+			if err := r.sendChunk(ctx, ch, chunk); err != nil {
+				return err
+			}
 		}
 	} else {
 		var chunk []middleware.MapMapperType
@@ -83,7 +87,23 @@ func (r *Reader) Read(ctx context.Context, ch chan<- interface{}) error {
 			resultSet := rawBytesToMapMapper(cols, vals)
 			chunk = append(chunk, resultSet)
 		}
+		if err := r.sendChunk(ctx, ch, chunk); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *Reader) sendChunk(ctx context.Context, ch chan<- interface{},
+	chunk []middleware.MapMapperType) error {
+
+	if r.conf.RowMapperFunc == nil {
 		ch <- chunk
+	} else {
+		if err := r.conf.RowMapperFunc(ctx, ch, chunk); err != nil {
+			return err
+		}
 	}
 
 	return nil

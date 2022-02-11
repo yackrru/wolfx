@@ -157,3 +157,152 @@ func createData(t *testing.T, db *sql.DB) {
 		t.Fatal(err)
 	}
 }
+
+func TestCustomMapper(t *testing.T) {
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	// DDL
+	file, err := os.Open("./testdata/ddl.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+	ddl, err := io.ReadAll(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(string(ddl)); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Run("CustomMapperType without ChunkSize", func(t *testing.T) {
+		createData(t, db)
+
+		reader := NewReader(&ReaderConfig{
+			DB:            db,
+			SQL:           "select * from users order by id",
+			RowMapperFunc: CustomDtoMapper,
+		})
+
+		var wg sync.WaitGroup
+		ch := make(chan interface{})
+		wg.Add(1)
+		go func(ch chan interface{}) {
+			defer wg.Done()
+			if err := reader.Read(context.TODO(), ch); err != nil {
+				t.Fatal(err)
+			}
+		}(ch)
+		iChunk := <-ch
+		chunk := iChunk.([]middleware.CustomMapperType)
+
+		expectedFile, err := os.Open("./testdata/expected.csv")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer expectedFile.Close()
+		csvReader := csv.NewReader(expectedFile)
+
+		count := 0
+		for {
+			want, err := csvReader.Read()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := chunk[count].Props.(CustomDto)
+			assert.Equal(t, want[0], got.Id)
+			assert.Equal(t, want[1], got.Name)
+			assert.Equal(t, want[2], got.JoinedAt)
+			count++
+		}
+	})
+
+	t.Run("CustomMapperType with ChunkSize", func(t *testing.T) {
+		createData(t, db)
+
+		reader := NewReader(&ReaderConfig{
+			DB:            db,
+			SQL:           "select * from users order by id",
+			ChunkSize:     5,
+			RowMapperFunc: CustomDtoMapper,
+		})
+
+		var wg sync.WaitGroup
+		ch := make(chan interface{})
+		wg.Add(1)
+		go func(ch chan interface{}) {
+			defer wg.Done()
+			if err := reader.Read(context.TODO(), ch); err != nil {
+				t.Fatal(err)
+			}
+		}(ch)
+
+		expectedFile, err := os.Open("./testdata/expected.csv")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer expectedFile.Close()
+		csvReader := csv.NewReader(expectedFile)
+
+		count := 0
+		for iChunk := range ch {
+			count++
+
+			chunk := iChunk.([]middleware.CustomMapperType)
+
+			var wants [][]string
+			for i := 0; i < len(chunk); i++ {
+				want, err := csvReader.Read()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				wants = append(wants, want)
+			}
+
+			for i, row := range chunk {
+				want := wants[i]
+				got := row.Props.(CustomDto)
+				assert.Equal(t, want[0], got.Id)
+				assert.Equal(t, want[1], got.Name)
+				assert.Equal(t, want[2], got.JoinedAt)
+			}
+		}
+		assert.Equal(t, 5, count)
+	})
+}
+
+type CustomDto struct {
+	Id       string
+	Name     string
+	JoinedAt string
+}
+
+func CustomDtoMapper(ctx context.Context, ch chan<- interface{},
+	chunk []middleware.MapMapperType) error {
+	var list []middleware.CustomMapperType
+
+	for _, row := range chunk {
+		dto := middleware.CustomMapperType{
+			Props: CustomDto{
+				Id:       row["id"],
+				Name:     row["name"],
+				JoinedAt: row["joined_at"],
+			},
+		}
+		list = append(list, dto)
+	}
+
+	ch <- list
+
+	return nil
+}
