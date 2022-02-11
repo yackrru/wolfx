@@ -175,7 +175,7 @@ func TestReaderWithMapperFunc(t *testing.T) {
 			}
 		}(ch)
 		iChunk := <-ch
-		chunk := iChunk.([]TestCSVMapping)
+		chunk := iChunk.([]middleware.CustomMapperType)
 
 		fileWant, err := os.Open("testdata/test_without_header.csv")
 		if err != nil {
@@ -193,7 +193,7 @@ func TestReaderWithMapperFunc(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			got := chunk[count]
+			got := chunk[count].Props.(TestCSVMapping)
 			assert.Equal(t, want[0], got.Id)
 			assert.Equal(t, want[1], got.Name)
 			assert.Equal(t, want[2], got.CreatedAt)
@@ -232,9 +232,9 @@ func TestReaderWithMapperFunc(t *testing.T) {
 		defer fileWant.Close()
 		csvWantReader := csv.NewReader(fileWant)
 
-		var wantList [][]TestCSVMapping
+		var wantList [][]middleware.CustomMapperType
 		for {
-			var want []TestCSVMapping
+			var want []middleware.CustomMapperType
 			for i := 0; i < 5; i++ {
 				wantRow, err := csvWantReader.Read()
 				if err == io.EOF {
@@ -244,10 +244,12 @@ func TestReaderWithMapperFunc(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				resultSet := TestCSVMapping{
-					Id:        wantRow[0],
-					Name:      wantRow[1],
-					CreatedAt: wantRow[2],
+				resultSet := middleware.CustomMapperType{
+					Props: TestCSVMapping{
+						Id:        wantRow[0],
+						Name:      wantRow[1],
+						CreatedAt: wantRow[2],
+					},
 				}
 				want = append(want, resultSet)
 			}
@@ -257,7 +259,7 @@ func TestReaderWithMapperFunc(t *testing.T) {
 
 		var assertTimes int
 		for iChunk := range ch {
-			chunk := iChunk.([]TestCSVMapping)
+			chunk := iChunk.([]middleware.CustomMapperType)
 			assert.ElementsMatch(t, wantList[assertTimes], chunk)
 			assertTimes++
 		}
@@ -272,18 +274,20 @@ type TestCSVMapping struct {
 
 func CSVMapper(ctx context.Context, ch chan<- interface{},
 	chunk []middleware.MapMapperType) error {
-	var dto []TestCSVMapping
+	var list []middleware.CustomMapperType
 
 	for _, row := range chunk {
-		obj := TestCSVMapping{
-			Id:        row["id"],
-			Name:      row["name"],
-			CreatedAt: row["created_at"],
+		dto := middleware.CustomMapperType{
+			Props: TestCSVMapping{
+				Id:        row["id"],
+				Name:      row["name"],
+				CreatedAt: row["created_at"],
+			},
 		}
-		dto = append(dto, obj)
+		list = append(list, dto)
 	}
 
-	ch <- dto
+	ch <- list
 
 	return nil
 }
