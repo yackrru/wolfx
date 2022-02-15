@@ -23,7 +23,7 @@ type WriterConfig struct {
 
 	// PropsBindPosition is the position mapping of header's columns.
 	// Key of map is property (column) name and value is position with starting 0.
-	PropsBindPosition map[string]uint
+	PropsBindPosition middleware.PropsBindPosition
 
 	// If NoHeader is true, Writer firstly outputs header string to csv.
 	NoHeader bool
@@ -59,7 +59,7 @@ func (w *Writer) Write(ctx context.Context, ch <-chan interface{}) error {
 		var items [][]string
 		switch chunk.(type) {
 		case []middleware.MapMapperType:
-			items = convertItemsMapMapper(chunk.([]middleware.MapMapperType),
+			items = middleware.MapMapperToFlatItems(chunk.([]middleware.MapMapperType),
 				w.conf.PropsBindPosition)
 		case []middleware.CustomMapperType:
 			items = convertItemsCustomMapper(chunk.([]middleware.CustomMapperType),
@@ -98,35 +98,8 @@ func generateHeader(propsBindPosition map[string]uint) []string {
 	return header
 }
 
-func convertItemsMapMapper(chunk []middleware.MapMapperType,
-	propsBindPosition map[string]uint) [][]string {
-
-	var items [][]string
-	for _, itemBuf := range chunk {
-		itemMap := make(map[int]string)
-		for k, v := range itemBuf {
-			position := int(propsBindPosition[k])
-			itemMap[position] = v
-		}
-
-		var idxList []int
-		for k := range itemMap {
-			idxList = append(idxList, k)
-		}
-		sort.Ints(idxList)
-
-		var item []string
-		for _, idx := range idxList {
-			item = append(item, itemMap[idx])
-		}
-		items = append(items, item)
-	}
-
-	return items
-}
-
 func convertItemsCustomMapper(chunk []middleware.CustomMapperType,
-	propsBindPosition map[string]uint) [][]string {
+	propsBindPosition middleware.PropsBindPosition) [][]string {
 
 	var mapMapperChunk []middleware.MapMapperType
 	for _, itemBuf := range chunk {
@@ -142,5 +115,5 @@ func convertItemsCustomMapper(chunk []middleware.CustomMapperType,
 		mapMapperChunk = append(mapMapperChunk, resultSet)
 	}
 
-	return convertItemsMapMapper(mapMapperChunk, propsBindPosition)
+	return middleware.MapMapperToFlatItems(mapMapperChunk, propsBindPosition)
 }

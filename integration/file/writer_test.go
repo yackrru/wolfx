@@ -37,7 +37,7 @@ type TestChunkType struct {
 }
 
 func TestWrite(t *testing.T) {
-	propsBindPosition := make(map[string]uint)
+	propsBindPosition := make(middleware.PropsBindPosition)
 	propsBindPosition["id"] = 0
 	propsBindPosition["name"] = 1
 
@@ -203,7 +203,7 @@ func TestWrite(t *testing.T) {
 }
 
 func TestGenerateHeader(t *testing.T) {
-	propsBindPosition := make(map[string]uint)
+	propsBindPosition := make(middleware.PropsBindPosition)
 	propsBindPosition["name"] = 1
 	propsBindPosition["created_at"] = 2
 	propsBindPosition["id"] = 0
@@ -211,38 +211,6 @@ func TestGenerateHeader(t *testing.T) {
 	header := generateHeader(propsBindPosition)
 	for idx, property := range header {
 		assert.Equal(t, int(propsBindPosition[property]), idx)
-	}
-}
-
-func TestConvertItemsMapMapper(t *testing.T) {
-	chunk := []middleware.MapMapperType{
-		{
-			"id":         "0",
-			"name":       "name0",
-			"created_at": "2022-01-01 00:00:00",
-		},
-		{
-			"id":         "1",
-			"name":       "name1",
-			"created_at": "2022-01-01 00:00:00",
-		},
-		{
-			"id":         "2",
-			"name":       "name2",
-			"created_at": "2022-01-01 00:00:00",
-		},
-	}
-	propsBindPosition := make(map[string]uint)
-	propsBindPosition["created_at"] = 0
-	propsBindPosition["id"] = 1
-	propsBindPosition["name"] = 2
-
-	items := convertItemsMapMapper(chunk, propsBindPosition)
-	for idx, item := range items {
-		target := chunk[idx]
-		assert.Equal(t, target["created_at"], item[0])
-		assert.Equal(t, target["id"], item[1])
-		assert.Equal(t, target["name"], item[2])
 	}
 }
 
@@ -267,7 +235,7 @@ func TestConvertItemsCustomMapper(t *testing.T) {
 			},
 		},
 	}
-	propsBindPosition := make(map[string]uint)
+	propsBindPosition := make(middleware.PropsBindPosition)
 	propsBindPosition["id"] = 2
 	propsBindPosition["name"] = 1
 
