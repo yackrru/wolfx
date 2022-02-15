@@ -36,3 +36,41 @@ func TestMapMapperToFlatItems(t *testing.T) {
 		assert.Equal(t, target["name"], item[2])
 	}
 }
+
+type TestChunkType struct {
+	Id   string `prop:"id"`
+	Name string `prop:"name"`
+}
+
+func TestConvertItemsCustomMapper(t *testing.T) {
+	chunk := []CustomMapperType{
+		{
+			Props: TestChunkType{
+				Id:   "0",
+				Name: "name0",
+			},
+		},
+		{
+			Props: TestChunkType{
+				Id:   "1",
+				Name: "name1",
+			},
+		},
+		{
+			Props: TestChunkType{
+				Id:   "2",
+				Name: "name2",
+			},
+		},
+	}
+	propsBindPosition := make(PropsBindPosition)
+	propsBindPosition["id"] = 2
+	propsBindPosition["name"] = 1
+
+	items := CustomMapperToFlatItems(chunk, propsBindPosition)
+	for idx, item := range items {
+		target := chunk[idx]
+		assert.Equal(t, target.Props.(TestChunkType).Id, item[1])
+		assert.Equal(t, target.Props.(TestChunkType).Name, item[0])
+	}
+}

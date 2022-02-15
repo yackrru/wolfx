@@ -62,7 +62,7 @@ func (w *Writer) Write(ctx context.Context, ch <-chan interface{}) error {
 			items = middleware.MapMapperToFlatItems(chunk.([]middleware.MapMapperType),
 				w.conf.PropsBindPosition)
 		case []middleware.CustomMapperType:
-			items = convertItemsCustomMapper(chunk.([]middleware.CustomMapperType),
+			items = middleware.CustomMapperToFlatItems(chunk.([]middleware.CustomMapperType),
 				w.conf.PropsBindPosition)
 		default:
 			v := reflect.ValueOf(chunk)
@@ -96,24 +96,4 @@ func generateHeader(propsBindPosition map[string]uint) []string {
 	}
 
 	return header
-}
-
-func convertItemsCustomMapper(chunk []middleware.CustomMapperType,
-	propsBindPosition middleware.PropsBindPosition) [][]string {
-
-	var mapMapperChunk []middleware.MapMapperType
-	for _, itemBuf := range chunk {
-		v := reflect.ValueOf(itemBuf.Props)
-		t := reflect.TypeOf(itemBuf.Props)
-
-		resultSet := make(middleware.MapMapperType)
-		for i := 0; i < v.NumField(); i++ {
-			key := t.Field(i).Tag.Get(middleware.CustomMapperTag)
-			val := v.Field(i).String()
-			resultSet[key] = val
-		}
-		mapMapperChunk = append(mapMapperChunk, resultSet)
-	}
-
-	return middleware.MapMapperToFlatItems(mapMapperChunk, propsBindPosition)
 }

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"reflect"
 	"sort"
 )
 
@@ -55,4 +56,26 @@ func MapMapperToFlatItems(chunk []MapMapperType,
 	}
 
 	return items
+}
+
+// CustomMapperToFlatItems converts chunk of CustomMapperType to slices
+// sorted by output element order.
+func CustomMapperToFlatItems(chunk []CustomMapperType,
+	propsBindPosition PropsBindPosition) [][]string {
+
+	var mapMapperChunk []MapMapperType
+	for _, itemBuf := range chunk {
+		v := reflect.ValueOf(itemBuf.Props)
+		t := reflect.TypeOf(itemBuf.Props)
+
+		resultSet := make(MapMapperType)
+		for i := 0; i < v.NumField(); i++ {
+			key := t.Field(i).Tag.Get(CustomMapperTag)
+			val := v.Field(i).String()
+			resultSet[key] = val
+		}
+		mapMapperChunk = append(mapMapperChunk, resultSet)
+	}
+
+	return MapMapperToFlatItems(mapMapperChunk, propsBindPosition)
 }

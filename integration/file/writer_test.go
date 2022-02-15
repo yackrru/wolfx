@@ -213,36 +213,3 @@ func TestGenerateHeader(t *testing.T) {
 		assert.Equal(t, int(propsBindPosition[property]), idx)
 	}
 }
-
-func TestConvertItemsCustomMapper(t *testing.T) {
-	chunk := []middleware.CustomMapperType{
-		{
-			Props: TestChunkType{
-				Id:   "0",
-				Name: "name0",
-			},
-		},
-		{
-			Props: TestChunkType{
-				Id:   "1",
-				Name: "name1",
-			},
-		},
-		{
-			Props: TestChunkType{
-				Id:   "2",
-				Name: "name2",
-			},
-		},
-	}
-	propsBindPosition := make(middleware.PropsBindPosition)
-	propsBindPosition["id"] = 2
-	propsBindPosition["name"] = 1
-
-	items := convertItemsCustomMapper(chunk, propsBindPosition)
-	for idx, item := range items {
-		target := chunk[idx]
-		assert.Equal(t, target.Props.(TestChunkType).Id, item[1])
-		assert.Equal(t, target.Props.(TestChunkType).Name, item[0])
-	}
-}
