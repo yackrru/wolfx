@@ -1,6 +1,8 @@
 # WolfX
 
 [![CI](https://github.com/yackrru/wolfx/actions/workflows/ci.yml/badge.svg)](https://github.com/yackrru/wolfx/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/yackrru/wolfx/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/yackrru/wolfx/actions/workflows/codeql-analysis.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/yackrru/wolfx.svg)](https://pkg.go.dev/github.com/yackrru/wolfx)
 
 A batch framework for golang.
 
