@@ -3,7 +3,9 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/yackrru/wolfx/middleware"
+	"reflect"
 )
 
 // Writer is an implementation of middleware.Writer.
@@ -50,6 +52,12 @@ func (w *Writer) Write(ctx context.Context, ch <-chan interface{}) error {
 			case []middleware.MapMapperType:
 				items = middleware.MapMapperToFlatItems(chunk.([]middleware.MapMapperType),
 					w.conf.PropsBindPosition)
+			case []middleware.CustomMapperType:
+				items = middleware.CustomMapperToFlatItems(chunk.([]middleware.CustomMapperType),
+					w.conf.PropsBindPosition)
+			default:
+				v := reflect.ValueOf(chunk)
+				return fmt.Errorf("Not supported such a chunk type: %s", v.Type())
 			}
 
 			for _, item := range items {
