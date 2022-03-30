@@ -1,14 +1,9 @@
 package middleware
 
-import "go.uber.org/zap"
+import (
+	"github.com/yackrru/gogger"
+)
 
 // Logger is the global logger.
 // both of framework and user's app.
-var Logger *zap.SugaredLogger
-
-func init() {
-	// Set up logger
-	logger, _ := zap.NewDevelopment()
-	defer logger.Sync()
-	Logger = logger.Sugar()
-}
+var Logger gogger.Logger

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"github.com/yackrru/gogger"
 	"github.com/yackrru/wolfx"
 	"github.com/yackrru/wolfx/middleware"
 	"testing"
@@ -13,6 +14,7 @@ import (
 func TestJobExecution(t *testing.T) {
 	wx := wolfx.New()
 	wx.ArtOFF = true
+	wx.LogLevel = gogger.LevelOff
 
 	fooJob := &FooJob{
 		t: t,
@@ -180,6 +182,7 @@ func (w *WEchoWriter) Write(ctx context.Context, ch <-chan interface{}) error {
 func TestJobExecutionWithCancel(t *testing.T) {
 	wx := wolfx.New()
 	wx.ArtOFF = true
+	wx.LogLevel = gogger.LevelOff
 	cancelJob := &CancelJob{
 		cancelReader: new(CancelReader),
 		cancelWriter: new(CancelWriter),
@@ -226,6 +229,7 @@ func (j *CancelJob) CancelWriterStep(ctx context.Context) error {
 func TestJobExecutionWithWriterCancel(t *testing.T) {
 	wx := wolfx.New()
 	wx.ArtOFF = true
+	wx.LogLevel = gogger.LevelOff
 	job := &CancelWriterJob{
 		writer: new(CancelWriter),
 	}
