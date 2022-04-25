@@ -10,7 +10,7 @@ A batch framework for golang.
 ### Architecture
 There is Job as the top-level concept and WolfX instance bundles multiple jobs.  
 Each Job has a unique job name and target job can be executed by passing the job name to WolfX instance.  
-Each Job has one or more steps, which can be executed sequentially or concurrently.  
+One or more Steps can be registered for a Job and executed in concurrently with each other.  
 Each Step has one reader and one writer.  
 The Reader and Writer runs on separate goroutines and they are connected by a channel.
 ![image](https://user-images.githubusercontent.com/50540555/154090445-92841692-c5b2-46b1-b2b2-6f503d96c25f.png)
