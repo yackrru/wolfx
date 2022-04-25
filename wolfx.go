@@ -155,6 +155,7 @@ func (b *JobBuilder) Build() error {
 
 		eg, ctx := errgroup.WithContext(context.Background())
 		for _, step := range flow {
+			step := step
 			eg.Go(func() error {
 				fValue := reflect.ValueOf(step)
 				fName := runtime.FuncForPC(fValue.Pointer()).Name()
