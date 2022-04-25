@@ -11,12 +11,11 @@ github.com/mattn/go-sqlite3 v1.14.11/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/testify v1.2.1/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/uniplaces/carbon v0.1.6 h1:JVxwWs8FfwAN+PvB2bh9WCZRX2u1Vp77cGXr51uzxJs=
-github.com/uniplaces/carbon v0.1.6/go.mod h1:glebpttsTxh8fBbciRAy3WvLfhBVa8n7qfgDTMAuJ3Y=
-github.com/yackrru/gogger v1.1.0 h1:vvcxYK1i3f0OFsXlURGHfhaevFrOLBsHrmHJHAJy8hw=
-github.com/yackrru/gogger v1.1.0/go.mod h1:OznGGka4qsOjVrIiXB4canbbFRCssJvJ4h3nbsssvV4=
+github.com/uniplaces/carbon v0.2.1 h1:mzHxyAafU0U21ZQ9UErRKi+YOoS37Z2KdYFgyQfckis=
+github.com/uniplaces/carbon v0.2.1/go.mod h1:3L/ZKEr/21OdLHkytvoa+iSUYDPsljWU7JiAdO4MaDI=
 github.com/yackrru/gogger v1.2.0 h1:+MwzT9t0V1Ip8810iQnYX8x3JbItzCZJ72aMxLySGUI=
 github.com/yackrru/gogger v1.2.0/go.mod h1:Y2GBGF8sqRfNUBkcTcy7O91p2CCGH9q2c9BuwKXceZY=
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=
