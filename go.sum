@@ -17,6 +17,8 @@ github.com/uniplaces/carbon v0.1.6 h1:JVxwWs8FfwAN+PvB2bh9WCZRX2u1Vp77cGXr51uzxJ
 github.com/uniplaces/carbon v0.1.6/go.mod h1:glebpttsTxh8fBbciRAy3WvLfhBVa8n7qfgDTMAuJ3Y=
 github.com/yackrru/gogger v1.1.0 h1:vvcxYK1i3f0OFsXlURGHfhaevFrOLBsHrmHJHAJy8hw=
 github.com/yackrru/gogger v1.1.0/go.mod h1:OznGGka4qsOjVrIiXB4canbbFRCssJvJ4h3nbsssvV4=
+github.com/yackrru/gogger v1.2.0 h1:+MwzT9t0V1Ip8810iQnYX8x3JbItzCZJ72aMxLySGUI=
+github.com/yackrru/gogger v1.2.0/go.mod h1:Y2GBGF8sqRfNUBkcTcy7O91p2CCGH9q2c9BuwKXceZY=
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

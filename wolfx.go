@@ -9,7 +9,6 @@ import (
 	"os"
 	"reflect"
 	"runtime"
-	"time"
 )
 
 const (
@@ -45,11 +44,10 @@ func New() *WolfX {
 // Arg jobName must be corresponded one of the name of WolfX.JobExecutors.
 func (wx *WolfX) Run(jobName string) error {
 	logWriter := gogger.NewLogStreamWriter(gogger.LogStreamWriterOption{
-		Output:        os.Stderr,
-		SyncQueueSize: 1000,
+		Output: os.Stderr,
 	})
 	logWriter.Open()
-	defer logWriter.Close(1 * time.Minute)
+	defer logWriter.Close()
 	conf := &gogger.LogConfig{
 		Writers:   []gogger.LogWriter{logWriter},
 		Formatter: gogger.NewLogSimpleFormatter(gogger.DefaultLogSimpleFormatterTmpl),
