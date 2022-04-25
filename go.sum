@@ -16,8 +16,8 @@ github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMT
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/uniplaces/carbon v0.2.1 h1:mzHxyAafU0U21ZQ9UErRKi+YOoS37Z2KdYFgyQfckis=
 github.com/uniplaces/carbon v0.2.1/go.mod h1:3L/ZKEr/21OdLHkytvoa+iSUYDPsljWU7JiAdO4MaDI=
-github.com/yackrru/gogger v1.2.0 h1:+MwzT9t0V1Ip8810iQnYX8x3JbItzCZJ72aMxLySGUI=
-github.com/yackrru/gogger v1.2.0/go.mod h1:Y2GBGF8sqRfNUBkcTcy7O91p2CCGH9q2c9BuwKXceZY=
+github.com/yackrru/gogger v1.2.1 h1:UkHf8VyK5vI7FVo2gJdtpsmJ/4mQNRKNceB02VP/rrk=
+github.com/yackrru/gogger v1.2.1/go.mod h1:Y2GBGF8sqRfNUBkcTcy7O91p2CCGH9q2c9BuwKXceZY=
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
